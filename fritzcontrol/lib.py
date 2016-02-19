@@ -59,7 +59,11 @@ class FritzControl:
 
     # there are config/query keys at the end of the html. this is a wrapper for reading it
     def __getConfigValue(self, str, key):
-        keyValue = re.findall(r"\[\"" + key + "\"\].=.\".+\"", str)[0]
+
+        keyValue = re.findall(r"" + key + ".=.\".+\"", str)
+        if not len(keyValue):
+            keyValue = re.findall(r"\[\"" + key + "\"\].=.\".+\"", str)
+        keyValue = keyValue[0]
         return keyValue.split("=", 1)[1].strip()[1:][:-1]
 
     # login method
@@ -70,7 +74,7 @@ class FritzControl:
             return challenge + "-" + hashlib.md5(challenge_password).hexdigest()
 
         login_page = urllib.urlopen(self.__baseUrl + "logincheck.lua").read()
-        challenge = self.__getConfigValue(login_page, "security:status/challenge")
+        challenge = self.__getConfigValue(login_page, "g_challenge")
         response = buildPasswordHash(self.__password, challenge)
 
         loginURL = self.__baseUrl + "login.lua"

@@ -60,11 +60,17 @@ class FritzControl:
     # there are config/query keys at the end of the html. this is a wrapper for reading it
     def __getConfigValue(self, str, key):
 
-        keyValue = re.findall(r"" + key + ".=.\".+\"", str)
+        keyValue = re.findall(r"" + key + ".:.\".+\"", str)
         if not len(keyValue):
-            keyValue = re.findall(r"\[\"" + key + "\"\].=.\".+\"", str)
+            keyValue = re.findall(r"\[\"" + key + "\"\].:.\".+\"", str)
         keyValue = keyValue[0]
-        return keyValue.split("=", 1)[1].strip()[1:][:-1]
+        return keyValue.split(":", 1)[1].strip()[1:][:-1]
+
+    def __getSidValue(self, str):
+
+        keyValue = re.findall(r"sid=.+&", str)
+        keyValue = keyValue[0]
+        return keyValue.split("=", 1)[1].strip()[:-1]
 
     # login method
     def __login(self):
@@ -73,16 +79,14 @@ class FritzControl:
             challenge_password = str(challenge + "-" + password_clean).encode("utf-16le")
             return challenge + "-" + hashlib.md5(challenge_password).hexdigest()
 
-        login_page = urllib.urlopen(self.__baseUrl + "logincheck.lua").read()
-        challenge = self.__getConfigValue(login_page, "g_challenge")
+        login_page = urllib.urlopen(self.__baseUrl).read()
+        challenge = self.__getConfigValue(login_page, "challenge")
         response = buildPasswordHash(self.__password, challenge)
 
-        loginURL = self.__baseUrl + "login.lua"
+        loginURL = self.__baseUrl
         postData = urllib.urlencode(
             {"response": response,
-             "username": self.__user,
-             "page": "",
-             "site_mode": "classic"})
+             "username": self.__user})
         try:
             loginRequest = urllib.urlopen(loginURL, postData)
         except:
@@ -91,7 +95,7 @@ class FritzControl:
         if not self.__checkIfLoggedIn(loginRequest):
             raise WrongCredentials
 
-        self.__session_id = loginRequest.geturl().split("=")[1]
+        self.__session_id = self.__getSidValue(loginRequest.read())
 
     def __init__(self, url=None, user=None, password=None, conf=None):
 
@@ -129,5 +133,10 @@ class FritzControl:
             "wephexvalue3": "",
             "wephexvalue4": "",
             "wepvalue": "",
-            "apply": ""
+            "macfilter": "open",
+            "print": "",
+            # "validate": "apply",
+            "xhr": 1,
+            "apply": "",
+            "oldpage": "/wlan/encrypt.lua"
         })

@@ -3,8 +3,16 @@ import json
 import hashlib
 import re
 
+import ssl
+
+
+sslCtx = ssl.create_default_context()
+sslCtx.check_hostname = False
+sslCtx.verify_mode = ssl.CERT_NONE
 
 # if urllib fails
+
+
 class NetworkError(Exception):
     pass
 
@@ -33,7 +41,7 @@ class FritzControl:
 
         url = self.__baseUrl + urlPart + "?sid=" + self.__session_id
         try:
-            request = urllib.urlopen(url, postData)
+            request = urllib.urlopen(url, postData, context=sslCtx)
         except:
             raise NetworkError
         if not self.__checkIfLoggedIn(request):
@@ -79,7 +87,7 @@ class FritzControl:
             challenge_password = str(challenge + "-" + password_clean).encode("utf-16le")
             return challenge + "-" + hashlib.md5(challenge_password).hexdigest()
 
-        login_page = urllib.urlopen(self.__baseUrl).read()
+        login_page = urllib.urlopen(self.__baseUrl, context=sslCtx).read()
         challenge = self.__getConfigValue(login_page, "challenge")
         response = buildPasswordHash(self.__password, challenge)
 
@@ -88,7 +96,7 @@ class FritzControl:
             {"response": response,
              "username": self.__user})
         try:
-            loginRequest = urllib.urlopen(loginURL, postData)
+            loginRequest = urllib.urlopen(loginURL, postData, context=sslCtx)
         except:
             raise NetworkError
 

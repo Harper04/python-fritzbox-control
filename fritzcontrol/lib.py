@@ -68,10 +68,10 @@ class FritzControl:
     # there are config/query keys at the end of the html. this is a wrapper for reading it
     def __getConfigValue(self, str, key):
 
-        keyValue = re.findall(r"" + key + ".:.\".+\"", str)
+        keyValue = re.findall(r"" + key + ".?:.?\".+\"", str)
         if not len(keyValue):
             keyValue = re.findall(r"\[\"" + key + "\"\].:.\".+\"", str)
-        keyValue = keyValue[0]
+        keyValue = keyValue[0].split(",")[0]
         return keyValue.split(":", 1)[1].strip()[1:][:-1]
 
     def __getSidValue(self, str):

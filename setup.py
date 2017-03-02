@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
     name='fritzcontrol',
     packages=['fritzcontrol'],  # this must be the same as the name above
-    version='1.0.3',
+    version='1.0.4',
     description='Library to control your FritzBox',
     author='Tom Jaster',
     author_email='futur3.tom@googlemail.com',
